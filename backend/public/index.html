@@ -1,0 +1,1150 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experiment 7.1 - JWT + RBAC Lab</title>
+
+<style>
+:root {
+    --bg: #0b101a;
+    --panel: #141e2e;
+    --border: #29364b;
+    --text: #d7dfeb;
+    --muted: #8497b7;
+    --blue: #306bd0;
+    --green: #45d3a2;
+    --red: #ff7c86;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    padding: 16px;
+    background: #080f1c;
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+/* LANDING PAGE */
+
+.hero {
+    min-height: 430px;
+    padding: 48px 30px 32px;
+    background: linear-gradient(145deg, #172131, #0c1422);
+    border: 1px solid #202b3b;
+}
+
+.lock {
+    font-size: 39px;
+    margin-bottom: 26px;
+}
+
+.hero h1 {
+    font-size: 29px;
+    color: #d4dbe7;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 15.5px;
+    line-height: 1.55;
+}
+
+.submitted {
+    margin: 27px 0;
+    color: #8290a8;
+    font-size: 14px;
+}
+
+.submitted strong {
+    color: #8995a9;
+}
+
+.features {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.feature {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.number {
+    width: 37px;
+    height: 31px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    background: var(--blue);
+    color: #e0eaff;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.feature-text {
+    color: #8498ba;
+    font-size: 15px;
+}
+
+/* COMMON SECTIONS */
+
+.section {
+    margin-top: 22px;
+    padding: 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+h2 {
+    font-size: 21px;
+    margin-bottom: 9px;
+}
+
+h3 {
+    font-size: 15px;
+    margin-bottom: 12px;
+}
+
+.description {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 17px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 7px;
+    color: #aebbd0;
+    font-size: 12px;
+}
+
+input, textarea, select {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    color: #e5ebf5;
+    background: #0b1422;
+    border: 1px solid #304057;
+    border-radius: 7px;
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+input:focus, textarea:focus {
+    border-color: var(--blue);
+}
+
+textarea {
+    min-height: 85px;
+    resize: vertical;
+}
+
+button {
+    padding: 10px 14px;
+    margin: 3px 5px 3px 0;
+    border: 0;
+    border-radius: 6px;
+    background: var(--blue);
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+button:hover {
+    filter: brightness(1.15);
+}
+
+button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+.secondary {
+    background: #29384d;
+}
+
+.status {
+    margin-top: 12px;
+    padding: 12px;
+    color: var(--muted);
+    background: #0b1422;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.status.ok {
+    color: var(--green);
+}
+
+.status.error {
+    color: var(--red);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.role-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+
+.role-buttons button {
+    background: #24354c;
+    border: 1px solid #3b4d67;
+}
+
+/* DASHBOARD */
+
+.pdf-dashboard {
+    margin-top: 22px;
+    min-height: 430px;
+    background: #0b0f14;
+    border: 1px solid #263244;
+    color: #cbd5e1;
+    font-size: 12px;
+}
+
+.dash-topbar {
+    min-height: 48px;
+    padding: 10px 15px;
+    background: #151e2d;
+    border-bottom: 1px solid #263244;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.dash-brand {
+    color: #d4dce9;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.dash-brand small {
+    color: #8795aa;
+    font-weight: normal;
+}
+
+.dash-account {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+}
+
+.dash-role {
+    padding: 5px 9px;
+    border-radius: 12px;
+    background: #183b35;
+    color: #63dfb1;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.dash-signout {
+    margin: 0;
+    padding: 6px 10px;
+    background: transparent;
+    border: 1px solid #344054;
+    color: #bdc9da;
+}
+
+.dash-layout {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    min-height: 380px;
+}
+
+.dash-sidebar {
+    padding: 13px 7px;
+    background: #151e2d;
+    border-right: 1px solid #263244;
+}
+
+.dash-nav {
+    display: block;
+    width: 100%;
+    margin: 0 0 5px;
+    padding: 10px 8px;
+    text-align: left;
+    background: transparent;
+    color: #91a0b8;
+    border-radius: 5px;
+    font-weight: normal;
+    font-size: 11px;
+}
+
+.dash-nav:hover,
+.dash-nav.active {
+    background: #1c304d;
+    color: #e0eaff;
+}
+
+.dash-main {
+    padding: 24px 18px;
+    min-width: 0;
+    background: #0b0f14;
+}
+
+.dash-main h2 {
+    font-size: 19px;
+    color: #e1e8f2;
+}
+
+.dash-subtitle {
+    margin: 5px 0 18px;
+    color: #8795aa;
+    line-height: 1.5;
+    font-size: 11px;
+}
+
+.dash-response {
+    padding: 17px;
+    background: #1c2839;
+    border: 1px solid #30415a;
+    border-radius: 7px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.dash-http {
+    color: #63dca8;
+    font-size: 11px;
+    font-weight: bold;
+    margin-bottom: 13px;
+}
+
+.dash-message {
+    margin-bottom: 12px;
+    color: #e1e7f0;
+}
+
+.dash-label {
+    color: #e0e7f1;
+    font-weight: bold;
+}
+
+.dash-description {
+    margin: 12px 0;
+    color: #c0cad9;
+}
+
+.dash-response ul {
+    margin: 5px 0 14px;
+    padding-left: 20px;
+}
+
+.dash-response li {
+    color: #b8c5d6;
+    margin-bottom: 3px;
+}
+
+.dash-authority {
+    color: #aab9cf;
+    margin-top: 4px;
+}
+
+pre {
+    padding: 13px;
+    margin-top: 10px;
+    background: #080f1c;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: #a9d6c9;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.footer {
+    padding: 25px 0;
+    color: #71829b;
+    text-align: center;
+    font-size: 11px;
+}
+
+@media(max-width: 600px) {
+    .hero {
+        padding: 35px 20px;
+    }
+
+    .hero h1 {
+        font-size: 25px;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .dash-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .dash-layout {
+        grid-template-columns: 112px minmax(0, 1fr);
+    }
+
+    .dash-main {
+        padding: 15px 9px;
+    }
+
+    .dash-response {
+        padding: 11px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- FIRST PAGE: KEEPING YOUR ORIGINAL DESIGN -->
+    <header class="hero">
+        <div class="lock">🔐</div>
+
+        <h1>JWT + RBAC Lab</h1>
+
+        <p class="subtitle">
+            Experiment 2.3.1 — Secure APIs with JSON Web<br>
+            Tokens &amp; Role-Based Access Control
+        </p>
+
+        <p class="submitted">
+            Submitted by: <strong>YASWANTH</strong>
+            · UID <strong>24BAI70099</strong>
+        </p>
+
+        <div class="features">
+            <div class="feature">
+                <div class="number">01</div>
+                <p class="feature-text">Login issues a signed JWT</p>
+            </div>
+
+            <div class="feature">
+                <div class="number">02</div>
+                <p class="feature-text">Filter validates token on every request</p>
+            </div>
+
+            <div class="feature">
+                <div class="number">03</div>
+                <p class="feature-text">Role decides which pages you can open</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- LOGIN -->
+    <section class="section" id="loginSection">
+        <h2>Secure Login</h2>
+        <p class="description">
+            Sign in to access your role-based dashboard.
+        </p>
+
+        <div class="grid">
+            <div>
+                <label for="username">Username</label>
+                <input id="username" placeholder="Enter username"
+                       autocomplete="username">
+
+                <label for="password">Password</label>
+                <input id="password" type="password"
+                       placeholder="Enter password"
+                       autocomplete="current-password">
+
+                <button id="loginBtn" onclick="login()">Login</button>
+                <button class="secondary" onclick="logout()">Clear session</button>
+            </div>
+
+            <div>
+                <h3>Choose an account</h3>
+                <p class="description">
+                    Select a username and enter the matching password.
+                </p>
+
+                <div class="role-buttons">
+                    <button onclick="fillUsername('admin')">Admin</button>
+                    <button onclick="fillUsername('editor')">Editor</button>
+                    <button onclick="fillUsername('viewer')">Viewer</button>
+                    <button onclick="fillUsername('user')">User</button>
+                </div>
+
+                <div id="loginStatus" class="status">
+                    Waiting for login...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEPARATE ROLE DASHBOARDS -->
+    <section id="dashboardSection" class="pdf-dashboard hidden">
+
+        <header class="dash-topbar">
+            <div class="dash-brand">
+                🔐 JWT · RBAC
+                <small> · YASWANTH · 24BAI70099</small>
+            </div>
+
+            <div class="dash-account">
+                <span id="dashUsername">Yaswanth</span>
+                <span id="roleBadge" class="dash-role">VIEWER</span>
+                <button class="dash-signout" onclick="logout()">Sign out</button>
+            </div>
+        </header>
+
+        <div class="dash-layout">
+            <aside class="dash-sidebar">
+                <button class="dash-nav active"
+                        data-page="dashboard"
+                        onclick="showDash('dashboard')">
+                    Dashboard
+                </button>
+
+                <button class="dash-nav"
+                        data-page="viewer"
+                        onclick="openDashboard('viewer')">
+                    Viewer Page
+                </button>
+
+                <button class="dash-nav"
+                        data-page="editor"
+                        onclick="openDashboard('editor')">
+                    Editor Page
+                </button>
+
+                <button class="dash-nav"
+                        data-page="admin"
+                        onclick="openDashboard('admin')">
+                    Admin Page
+                </button>
+
+                <button class="dash-nav"
+                        data-page="token"
+                        onclick="showDash('token')">
+                    Token Inspector
+                </button>
+            </aside>
+
+            <main class="dash-main">
+                <div id="dashContent">
+                    <h2>Dashboard</h2>
+                    <p class="dash-subtitle">Your role-based dashboard.</p>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- JWT TOKEN INSPECTOR -->
+    <section class="section" id="tokenSection">
+        <h2>JWT Token Inspector</h2>
+        <p class="description">
+            Decode the token payload locally. This does not verify the signature;
+            the backend verifies the JWT on protected requests.
+        </p>
+
+        <label for="tokenOutput">JWT Token</label>
+        <textarea id="tokenOutput" readonly
+                  placeholder="Log in to receive a JWT"></textarea>
+
+        <button onclick="inspectToken()">Decode token</button>
+        <button class="secondary" onclick="copyToken()">Copy token</button>
+
+        <h3 style="margin-top:18px">Decoded payload</h3>
+        <pre id="decodedOutput">No token decoded yet.</pre>
+    </section>
+
+    <!-- EXPERIMENT 7.2 ENCRYPTION -->
+    <section class="section" id="encryptionSection">
+        <h2>Encryption and Decryption</h2>
+        <p class="description">
+            Test your backend encryption endpoints. Decryption requires Admin access.
+        </p>
+
+        <label for="plainText">Plain text</label>
+        <textarea id="plainText" placeholder="Enter text to encrypt"></textarea>
+
+        <button onclick="encryptText()">Encrypt text</button>
+
+        <label for="encryptedText" style="margin-top:15px">
+            Encrypted text
+        </label>
+        <textarea id="encryptedText"
+                  placeholder="Encrypted result appears here"></textarea>
+
+        <button onclick="decryptText()">Decrypt text (Admin)</button>
+
+        <div id="cryptoStatus" class="status">
+            Ready to test encryption.
+        </div>
+    </section>
+
+    <footer class="footer">
+        Experiment 7 · JWT Authentication and Role-Based Access Control
+        <br>
+        YASWANTH · 24BAI70099
+    </footer>
+
+</div>
+
+<script>
+"use strict";
+
+const API_BASE = "/api";
+
+let jwtToken = sessionStorage.getItem("jwtToken") || "";
+let currentUser = null;
+
+const dashboardInfo = {
+    admin: {
+        icon: "🚀",
+        title: "Admin Dashboard",
+        access: "ADMIN only",
+        message: "Welcome Admin",
+        page: "ADMIN",
+        description:
+            "Full system control. The administrator can manage users and oversee the application.",
+        features: [
+            "User management",
+            "Role assignment",
+            "System configuration",
+            "Audit logs"
+        ],
+        authority: "ROLE_ADMIN"
+    },
+
+    editor: {
+        icon: "🖊️",
+        title: "Editor Dashboard",
+        access: "ADMIN and EDITOR",
+        message: "Welcome Editor",
+        page: "EDITOR",
+        description:
+            "The editor can create and update content while protected operations remain restricted.",
+        features: [
+            "Create articles",
+            "Edit drafts",
+            "Publish content",
+            "Preview pages"
+        ],
+        authority: "ROLE_EDITOR"
+    },
+
+    viewer: {
+        icon: "👁️",
+        title: "Viewer Dashboard",
+        access: "ADMIN, EDITOR and VIEWER",
+        message: "Welcome Viewer",
+        page: "VIEWER",
+        description:
+            "Read-only access. The viewer can view available content without modifying it.",
+        features: [
+            "View published articles",
+            "Browse dashboards",
+            "Read reports"
+        ],
+        authority: "ROLE_VIEWER"
+    }
+};
+
+function fillUsername(username) {
+    document.getElementById("username").value = username;
+    document.getElementById("password").focus();
+}
+
+function showStatus(id, message, type = "") {
+    const el = document.getElementById(id);
+    el.textContent = message;
+    el.className = "status" + (type ? " " + type : "");
+}
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+async function apiRequest(path, options = {}) {
+    const headers = {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+    };
+
+    if (jwtToken) {
+        headers.Authorization = "Bearer " + jwtToken;
+    }
+
+    const response = await fetch(API_BASE + path, {
+        ...options,
+        headers
+    });
+
+    const text = await response.text();
+    let data;
+
+    try {
+        data = text ? JSON.parse(text) : {};
+    } catch {
+        data = { message: text || "Unexpected server response" };
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data.message || data.error || "HTTP " + response.status
+        );
+    }
+
+    return data;
+}
+
+/* LOGIN */
+
+async function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+        showStatus(
+            "loginStatus",
+            "Enter both username and password.",
+            "error"
+        );
+        return;
+    }
+
+    const button = document.getElementById("loginBtn");
+    button.disabled = true;
+
+    try {
+        const data = await apiRequest("/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ username, password })
+        });
+
+        const receivedToken = data.token || data.accessToken;
+
+        if (!receivedToken) {
+            throw new Error("The login API did not return a JWT token.");
+        }
+
+        jwtToken = receivedToken;
+        sessionStorage.setItem("jwtToken", jwtToken);
+
+        currentUser = data.user || {
+            username: username,
+            role: username
+        };
+
+        try {
+            const profile = await apiRequest("/users/profile");
+            currentUser = profile.user || profile;
+        } catch {
+            // Use user details from the login response when available.
+        }
+
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("dashboardSection").classList.remove("hidden");
+
+        document.getElementById("dashUsername").textContent =
+            currentUser.username || username;
+
+        document.getElementById("tokenOutput").value = jwtToken;
+
+        showStatus("loginStatus", "Login successful.", "ok");
+
+        inspectToken();
+
+        const role = String(currentUser.role || username).toLowerCase();
+
+        if (role === "admin") {
+            await openDashboard("admin");
+        } else if (role === "editor") {
+            await openDashboard("editor");
+        } else {
+            await openDashboard("viewer");
+        }
+
+    } catch (error) {
+        showStatus("loginStatus", error.message, "error");
+    } finally {
+        button.disabled = false;
+    }
+}
+
+/* ROLE DASHBOARDS */
+
+async function openDashboard(role) {
+    if (!jwtToken) {
+        showStatus("loginStatus", "Please log in first.", "error");
+        return;
+    }
+
+    const info = dashboardInfo[role];
+    if (!info) return;
+
+    try {
+        // The backend must approve this role-specific endpoint.
+        const result = await apiRequest("/users/" + role);
+
+        document.querySelectorAll(".dash-nav").forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.page === role
+            );
+        });
+
+        const features = info.features
+            .map(item => "<li>" + escapeHTML(item) + "</li>")
+            .join("");
+
+        const actualRole = String(
+            currentUser?.role || role
+        ).toUpperCase();
+
+        document.getElementById("roleBadge").textContent = actualRole;
+
+        document.getElementById("dashContent").innerHTML = `
+            <h2>${info.icon} ${info.title}</h2>
+            <p class="dash-subtitle">
+                Role-Based Access Control · Accessible by ${escapeHTML(info.access)}
+            </p>
+
+            <div class="dash-response">
+                <div class="dash-http">● HTTP 200 · ACCESS GRANTED</div>
+
+                <div class="dash-message">
+                    <span class="dash-label">Message:</span>
+                    ${escapeHTML(result.message || info.message)}
+                </div>
+
+                <div>
+                    <span class="dash-label">Page:</span>
+                    ${info.page}
+                </div>
+
+                <div class="dash-description">
+                    <span class="dash-label">Description:</span><br>
+                    ${escapeHTML(info.description)}
+                </div>
+
+                <div class="dash-label">Features:</div>
+                <ul>${features}</ul>
+
+                <div class="dash-authority">
+                    Your role: ${escapeHTML(actualRole)}
+                </div>
+
+                <div class="dash-authority">
+                    Authority: ${info.authority}
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        document.querySelectorAll(".dash-nav").forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.page === role
+            );
+        });
+
+        document.getElementById("dashContent").innerHTML = `
+            <h2>⛔ Access Denied</h2>
+            <p class="dash-subtitle">
+                The backend rejected this request or the endpoint is unavailable.
+            </p>
+            <div class="dash-response">
+                <div style="color:#ff7c86;font-weight:bold">
+                    ● REQUEST FAILED
+                </div>
+                <p style="margin-top:12px">${escapeHTML(error.message)}</p>
+            </div>
+        `;
+    }
+}
+
+async function showDash(page) {
+    if (page === "dashboard") {
+        const role = String(
+            currentUser?.role || ""
+        ).toLowerCase();
+
+        if (role === "admin") {
+            await openDashboard("admin");
+        } else if (role === "editor") {
+            await openDashboard("editor");
+        } else {
+            await openDashboard("viewer");
+        }
+        return;
+    }
+
+    if (page === "token") {
+        document.querySelectorAll(".dash-nav").forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.page === "token"
+            );
+        });
+
+        document.getElementById("dashContent").innerHTML = `
+            <h2>🔑 JWT Token Inspector</h2>
+            <p class="dash-subtitle">Inspect the current token payload.</p>
+            <div class="dash-response">
+                <div class="dash-http">TOKEN INSPECTOR</div>
+                <pre>${escapeHTML(jwtToken || "No JWT token available.")}</pre>
+                <button onclick="inspectToken()">Decode token</button>
+                <pre id="dashDecodedToken">Select Decode token.</pre>
+            </div>
+        `;
+
+        if (jwtToken) {
+            const decoded = decodeTokenPayload();
+            document.getElementById("dashDecodedToken").textContent =
+                decoded ? JSON.stringify(decoded, null, 2) :
+                "Unable to decode token.";
+        }
+    }
+}
+
+async function getProfile() {
+    try {
+        const data = await apiRequest("/users/profile");
+        document.getElementById("dashContent").innerHTML = `
+            <h2>My Profile</h2>
+            <p class="dash-subtitle">Authenticated user details.</p>
+            <div class="dash-response">
+                <div class="dash-http">● HTTP 200</div>
+                <pre>${escapeHTML(JSON.stringify(data, null, 2))}</pre>
+            </div>
+        `;
+    } catch (error) {
+        showStatus("loginStatus", error.message, "error");
+    }
+}
+
+/* TOKEN INSPECTOR */
+
+function decodeBase64URL(value) {
+    let base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4) base64 += "=";
+
+    const binary = atob(base64);
+    const bytes = Uint8Array.from(
+        binary,
+        character => character.charCodeAt(0)
+    );
+
+    return new TextDecoder().decode(bytes);
+}
+
+function decodeTokenPayload() {
+    try {
+        const parts = jwtToken.split(".");
+        if (parts.length !== 3) return null;
+
+        return {
+            header: JSON.parse(decodeBase64URL(parts[0])),
+            payload: JSON.parse(decodeBase64URL(parts[1]))
+        };
+    } catch {
+        return null;
+    }
+}
+
+function inspectToken() {
+    document.getElementById("tokenOutput").value = jwtToken;
+
+    const decoded = decodeTokenPayload();
+
+    document.getElementById("decodedOutput").textContent = decoded
+        ? JSON.stringify(decoded, null, 2)
+        : "No valid three-part JWT available.";
+
+    const dashOutput = document.getElementById("dashDecodedToken");
+    if (dashOutput) {
+        dashOutput.textContent = decoded
+            ? JSON.stringify(decoded, null, 2)
+            : "No valid three-part JWT available.";
+    }
+}
+
+async function copyToken() {
+    if (!jwtToken) {
+        showStatus("loginStatus", "Log in first.", "error");
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(jwtToken);
+        showStatus("loginStatus", "JWT copied to clipboard.", "ok");
+    } catch {
+        showStatus(
+            "loginStatus",
+            "Select and copy the token from the token field."
+        );
+    }
+}
+
+/* ENCRYPTION */
+
+async function encryptText() {
+    if (!jwtToken) {
+        showStatus("cryptoStatus", "Log in first.", "error");
+        return;
+    }
+
+    const text = document.getElementById("plainText").value;
+
+    try {
+        const data = await apiRequest("/users/encrypt", {
+            method: "POST",
+            body: JSON.stringify({ text })
+        });
+
+        const encrypted = data.encrypted ?? data.encryptedText;
+
+        if (encrypted !== undefined) {
+            document.getElementById("encryptedText").value = encrypted;
+        }
+
+        showStatus(
+            "cryptoStatus",
+            JSON.stringify(data, null, 2),
+            "ok"
+        );
+    } catch (error) {
+        showStatus("cryptoStatus", error.message, "error");
+    }
+}
+
+async function decryptText() {
+    if (!jwtToken) {
+        showStatus("cryptoStatus", "Log in first.", "error");
+        return;
+    }
+
+    const text = document.getElementById("encryptedText").value;
+
+    try {
+        const data = await apiRequest("/users/decrypt", {
+            method: "POST",
+            body: JSON.stringify({ text })
+        });
+
+        if (data.decrypted !== undefined) {
+            document.getElementById("plainText").value = data.decrypted;
+        }
+
+        showStatus(
+            "cryptoStatus",
+            JSON.stringify(data, null, 2),
+            "ok"
+        );
+    } catch (error) {
+        showStatus("cryptoStatus", error.message, "error");
+    }
+}
+
+/* LOGOUT AND SESSION RESTORE */
+
+function logout() {
+    jwtToken = "";
+    currentUser = null;
+
+    sessionStorage.removeItem("jwtToken");
+
+    document.getElementById("dashboardSection").classList.add("hidden");
+    document.getElementById("loginSection").classList.remove("hidden");
+    document.getElementById("password").value = "";
+    document.getElementById("tokenOutput").value = "";
+    document.getElementById("decodedOutput").textContent =
+        "No token decoded yet.";
+
+    showStatus("loginStatus", "You have signed out.", "ok");
+    showStatus("cryptoStatus", "Ready to test encryption.");
+
+    document.getElementById("dashContent").innerHTML = `
+        <h2>Dashboard</h2>
+        <p class="dash-subtitle">Sign in to access your dashboard.</p>
+    `;
+}
+
+async function restoreSession() {
+    if (!jwtToken) return;
+
+    try {
+        const data = await apiRequest("/users/profile");
+        currentUser = data.user || data;
+
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("dashboardSection").classList.remove("hidden");
+
+        document.getElementById("dashUsername").textContent =
+            currentUser.username || "User";
+
+        document.getElementById("roleBadge").textContent =
+            String(currentUser.role || "unknown").toUpperCase();
+
+        inspectToken();
+
+        const role = String(currentUser.role || "").toLowerCase();
+
+        if (role === "admin") {
+            await openDashboard("admin");
+        } else if (role === "editor") {
+            await openDashboard("editor");
+        } else {
+            await openDashboard("viewer");
+        }
+    } catch {
+        jwtToken = "";
+        currentUser = null;
+        sessionStorage.removeItem("jwtToken");
+    }
+}
+
+restoreSession();
+</script>
+</body>
+</html>

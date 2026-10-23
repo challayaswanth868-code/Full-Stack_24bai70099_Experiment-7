@@ -1,0 +1,379 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FS Experiment 7.2 - Secure Token API</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: #172337;
+    background: white;
+}
+
+.top-section {
+    background: #c9c9d0;
+    padding: 0 8px 9px;
+}
+
+h1 {
+    margin: 0 0 12px;
+    color: #39208f;
+    font-size: 24px;
+}
+
+.subtitle {
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.panel {
+    background: #d0d0d0;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px #0000000d;
+}
+
+.grid .panel {
+    min-height: 285px;
+}
+
+h2 {
+    font-size: 19px;
+    margin: 14px 4px 20px;
+}
+
+input {
+    width: 100%;
+    padding: 9px 11px;
+    margin-bottom: 10px;
+    border: 1px solid #c2c2c9;
+    border-radius: 7px;
+    background: #d0d0d0;
+    font-size: 12px;
+}
+
+button {
+    display: inline-block;
+    background: #39208f;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 13px;
+    margin-bottom: 10px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #29146e;
+}
+
+pre {
+    min-height: 56px;
+    margin: 0;
+    padding: 11px;
+    border-radius: 7px;
+    background: #c2c2cc;
+    font: 12px/1.3 Arial, sans-serif;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.figure {
+    text-align: center;
+    font: 16px Georgia, serif;
+    padding: 17px 0 14px;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #c5c5cc;
+}
+
+.tokens-section {
+    background: #c9c9d0;
+    padding: 6px 9px 10px;
+    margin: 0 9px;
+}
+
+.tokens-panel {
+    padding: 18px 20px;
+}
+
+.tokens-panel h2 {
+    margin-top: 12px;
+    margin-bottom: 20px;
+}
+
+.token-output {
+    min-height: 160px;
+}
+
+@media (max-width: 650px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<section class="top-section">
+
+    <h1>🔐 Secure Token API</h1>
+    <div class="subtitle">
+        FS Experiment 7.2 — AES Encryption &amp; Access/Refresh Tokens
+    </div>
+
+    <div class="grid">
+
+        <!-- AES ENCRYPTION -->
+        <section class="panel">
+            <h2>🔓 AES Encryption</h2>
+
+            <input
+                type="text"
+                id="plainText"
+                value="Yaswanth-24BAI70099"
+                placeholder="Enter sensitive data"
+            >
+
+            <button onclick="encryptData()">Encrypt &amp; Store</button>
+
+            <pre id="encryptResult">{
+  "message": "Enter data and click Encrypt & Store."
+}</pre>
+        </section>
+
+        <!-- AES DECRYPTION -->
+        <section class="panel">
+            <h2>🔓 AES Decryption</h2>
+
+            <input
+                type="text"
+                id="recordId"
+                value="4"
+                placeholder="Enter record ID"
+            >
+
+            <button onclick="decryptData()">Decrypt</button>
+
+            <pre id="decryptResult">{
+  "message": "Encrypt data first, then decrypt it."
+}</pre>
+        </section>
+
+    </div>
+</section>
+
+<div class="figure">
+    <strong>Fig 1:</strong> AES Encryption and Decryption
+</div>
+
+<hr>
+
+<!-- ACCESS AND REFRESH TOKENS -->
+<section class="tokens-section">
+    <section class="panel tokens-panel">
+
+        <h2>🪪 Access &amp; Refresh Tokens</h2>
+
+        <input
+            type="text"
+            id="username"
+            value="YASWANTH"
+            placeholder="Enter username"
+        >
+
+        <button onclick="generateTokens()">Generate Tokens</button>
+
+        <pre class="token-output" id="tokenResult">{
+  "message": "Enter username and click Generate Tokens."
+}</pre>
+
+    </section>
+</section>
+
+<div class="figure">
+    <strong>Fig 2:</strong> Access and Refresh Tokens
+</div>
+
+<script>
+let encryptionKey = null;
+const records = {};
+let nextId = 4;
+
+function toBase64(bytes) {
+    let binary = "";
+    bytes.forEach(byte => {
+        binary += String.fromCharCode(byte);
+    });
+    return btoa(binary);
+}
+
+function fromBase64(value) {
+    return Uint8Array.from(atob(value), char => char.charCodeAt(0));
+}
+
+async function getKey() {
+    if (!encryptionKey) {
+        encryptionKey = await crypto.subtle.generateKey(
+            { name: "AES-GCM", length: 256 },
+            true,
+            ["encrypt", "decrypt"]
+        );
+    }
+
+    return encryptionKey;
+}
+
+async function encryptData() {
+    const text = document.getElementById("plainText").value.trim();
+    const output = document.getElementById("encryptResult");
+
+    if (!text) {
+        output.textContent = JSON.stringify({
+            error: "Please enter data to encrypt."
+        }, null, 2);
+        return;
+    }
+
+    try {
+        const key = await getKey();
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+
+        const encrypted = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: iv },
+            key,
+            new TextEncoder().encode(text)
+        );
+
+        const id = String(nextId++);
+        const encryptedData = toBase64(new Uint8Array(encrypted));
+        const ivValue = toBase64(iv);
+
+        records[id] = {
+            encryptedData: encryptedData,
+            iv: ivValue,
+            key: key
+        };
+
+        document.getElementById("recordId").value = id;
+
+        output.textContent = JSON.stringify({
+            message: "Data encrypted and stored successfully",
+            id: id,
+            encryptedData: encryptedData
+        }, null, 2);
+
+        document.getElementById("decryptResult").textContent =
+            JSON.stringify({
+                message: "Record ready for decryption",
+                id: id
+            }, null, 2);
+
+    } catch (error) {
+        output.textContent = JSON.stringify({
+            error: error.message
+        }, null, 2);
+    }
+}
+
+async function decryptData() {
+    const id = document.getElementById("recordId").value.trim();
+    const output = document.getElementById("decryptResult");
+    const record = records[id];
+
+    if (!record) {
+        output.textContent = JSON.stringify({
+            error: "Record not found. Encrypt data first in this session.",
+            id: id
+        }, null, 2);
+        return;
+    }
+
+    try {
+        const decrypted = await crypto.subtle.decrypt(
+            {
+                name: "AES-GCM",
+                iv: fromBase64(record.iv)
+            },
+            record.key,
+            fromBase64(record.encryptedData)
+        );
+
+        output.textContent = JSON.stringify({
+            id: id,
+            decryptedData: new TextDecoder().decode(decrypted)
+        }, null, 2);
+
+    } catch (error) {
+        output.textContent = JSON.stringify({
+            error: "Decryption failed."
+        }, null, 2);
+    }
+}
+
+function randomTokenPart(length) {
+    const bytes = crypto.getRandomValues(new Uint8Array(length));
+    return toBase64(bytes)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+}
+
+function generateTokens() {
+    const username = document.getElementById("username").value.trim();
+    const output = document.getElementById("tokenResult");
+
+    if (!username) {
+        output.textContent = JSON.stringify({
+            error: "Please enter a username."
+        }, null, 2);
+        return;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+
+    const accessPayload = btoa(JSON.stringify({
+        username: username,
+        iat: now,
+        exp: now + 15 * 60
+    })).replace(/=/g, "");
+
+    const refreshPayload = btoa(JSON.stringify({
+        username: username,
+        iat: now,
+        exp: now + 7 * 24 * 60 * 60,
+        type: "refresh"
+    })).replace(/=/g, "");
+
+    output.textContent = JSON.stringify({
+        username: username,
+        accessToken:
+            "demo." + accessPayload + "." + randomTokenPart(32),
+        refreshToken:
+            "demo." + refreshPayload + "." + randomTokenPart(48),
+        accessTokenLifetime: "15 minutes",
+        refreshTokenLifetime: "7 days"
+    }, null, 2);
+}
+</script>
+
+</body>
+</html>
